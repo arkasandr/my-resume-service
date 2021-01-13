@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="card" v-if="comments.length !== 0">
     <h2>Комментарии</h2>
     <ul class="list">
       <li class="list-item" v-for="item in comments" :key="item.id">

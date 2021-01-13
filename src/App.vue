@@ -8,8 +8,10 @@
     <p>
       <button class="btn primary" v-if="comments.length === 0" @click="loadComments">Загрузить комментарии</button>
     </p>
-<app-comments :comments="comments"></app-comments>
-    <!--    <div class="loader"></div>-->
+
+    <app-loader v-if="commentsLoading"> </app-loader>
+    <app-comments :comments="comments"></app-comments>
+
   </div>
 
 </template>
@@ -18,13 +20,15 @@
 
 import AppComments from './components/AppComments'
 import axios from 'axios'
+import AppLoader from './components/AppLoader'
 
 export default {
 
   data () {
     return {
       comments: [],
-      resume: ['app-title', 'app-title'],
+      resumeLoading: false,
+      commentsLoading: false,
       addButton: '',
       selectedType: ''
     }
@@ -38,13 +42,16 @@ export default {
 
   methods: {
     async loadComments () {
+      this.commentsLoading = true
       const response = await axios.get('https://jsonplaceholder.typicode.com/comments?_limit=42')
       this.comments = response.data
+      this.commentsLoading = false
     }
   },
 
   components: {
-    'app-comments': AppComments
+    'app-comments': AppComments,
+    'app-loader': AppLoader
   }
 
 }
