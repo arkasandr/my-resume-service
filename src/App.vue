@@ -1,7 +1,15 @@
 <template>
 
   <div class="container column">
+    <app-control
+      @updateResume="updateResume"
+    >
+    </app-control>
 
+    <app-resume
+      :resume="resume"
+    >
+    </app-resume>
   </div>
 
   <div class="container">
@@ -21,24 +29,27 @@
 import AppComments from './components/AppComments'
 import axios from 'axios'
 import AppLoader from './components/AppLoader'
+import AppControl from './components/AppControl'
+import AppResume from './components/AppResume'
 
 export default {
 
   data () {
     return {
       comments: [],
+      resume: [],
       resumeLoading: false,
       commentsLoading: false,
-      addButton: '',
-      selectedType: ''
+      title: '',
+      subtitle: '',
+      avatar: '',
+      text: ''
     }
   },
 
-  // computed: {
-  //   addButtonDisable() {
-  //     return this.addButton.length < 4
-  //   }
-  // },
+  computed: {
+
+  },
 
   methods: {
     async loadComments () {
@@ -46,12 +57,58 @@ export default {
       const response = await axios.get('https://jsonplaceholder.typicode.com/comments?_limit=42')
       this.comments = response.data
       this.commentsLoading = false
+    },
+
+    async updateResume ({ type, text }) {
+      const response = await fetch('https://my-resume-service-default-rtdb.firebaseio.com/resume.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: type,
+          content: text
+        })
+      })
+      const firebaseData = await response.json()
+      console.log('updateResume in firebase', firebaseData)
+      await this.loadResume()
+    },
+
+    async loadResume () {
+      try {
+        const response = await axios.get('https://my-resume-service-default-rtdb.firebaseio.com/resume.json')
+        if (!response.data) {
+          throw new Error('Резюме отсутствует')
+        }
+        this.resume = Object.keys(response.data).map(key => {
+          return {
+            id: key,
+            ...response.data[key]
+          }
+        })
+      } catch (e) {
+        // this.alert = {
+        //   type: 'danger',
+        //   title: 'Ошибка!',
+        //   text: e.message
+        // }
+        // this.loading = false
+        console.log(e.message)
+      }
     }
+
   },
 
   components: {
     'app-comments': AppComments,
-    'app-loader': AppLoader
+    'app-loader': AppLoader,
+    'app-control': AppControl,
+    'app-resume': AppResume
+  },
+
+  mounted () {
+    this.loadResume()
   }
 
 }

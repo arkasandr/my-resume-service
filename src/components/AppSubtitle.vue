@@ -1,6 +1,6 @@
 <template>
-<!--  <div v-for="item in resume" :key=item.id>-->
-<!--    <h1 v-if="item.type === 'title'">{{ item.content}}</h1>-->
+<!--  <div v-for="item in resume" :key = item.id>-->
+<!--    <h1 v-if="item.type === 'subtitle'">{{ item.content}}</h1>-->
 <!--  </div>-->
   <div >
     <h1>{{resume}}</h1>
@@ -9,7 +9,7 @@
 
 <script>
 export default {
-  name: 'AppTitle',
+  name: 'AppSubtitle',
   props: [
     'resume'
   ]
