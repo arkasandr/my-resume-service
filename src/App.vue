@@ -1,27 +1,28 @@
 <template>
-
-  <div class="container column">
-    <app-control
-      @updateResume="updateResume"
-    >
-    </app-control>
-
-    <app-resume
-      :resume="resume"
-    >
-    </app-resume>
-  </div>
-
   <div class="container">
-    <p>
-      <button class="btn primary" v-if="comments.length === 0" @click="loadComments">Загрузить комментарии</button>
-    </p>
+    <app-alert :alert="alert" @close="alert = null"></app-alert>
+    <div class="container column">
+      <app-control
+        @updateResume="updateResume"
+      >
+      </app-control>
 
-    <app-loader v-if="commentsLoading"> </app-loader>
-    <app-comments :comments="comments"></app-comments>
+      <app-resume
+        :resume="resume"
+      >
+      </app-resume>
+    </div>
 
+    <div class="container">
+      <p>
+        <button class="btn primary" v-if="comments.length === 0" @click="loadComments">Загрузить комментарии</button>
+      </p>
+
+      <app-loader v-if="commentsLoading"></app-loader>
+      <app-comments :comments="comments"></app-comments>
+
+    </div>
   </div>
-
 </template>
 
 <script>
@@ -31,6 +32,7 @@ import axios from 'axios'
 import AppLoader from './components/AppLoader'
 import AppControl from './components/AppControl'
 import AppResume from './components/AppResume'
+import AppAlert from './components/AppAlert'
 
 export default {
 
@@ -43,40 +45,64 @@ export default {
       title: '',
       subtitle: '',
       avatar: '',
-      text: ''
+      text: '',
+      alert: null
     }
   },
 
-  computed: {
-
-  },
-
   methods: {
-    async loadComments () {
-      this.commentsLoading = true
-      const response = await axios.get('https://jsonplaceholder.typicode.com/comments?_limit=42')
-      this.comments = response.data
-      this.commentsLoading = false
+    loadComments () {
+      try {
+        this.commentsLoading = true
+        setTimeout(async () => {
+          const response = await axios.get('https://jsonplaceholder.typicode.com/comments?_limit=42')
+          if (!response.data) {
+            throw new Error('Комментарии отсутствуют')
+          }
+          this.comments = response.data
+          this.commentsLoading = false
+        }, 1500)
+        this.alert = {
+          type: 'primary',
+          title: 'Успешно!',
+          text: 'Комментарии загружены!'
+        }
+      } catch (e) {
+        this.alert = {
+          type: 'danger',
+          title: 'Ошибка!',
+          text: e.message
+        }
+      }
     },
 
-    async updateResume ({ type, text }) {
-      const response = await fetch('https://my-resume-service-default-rtdb.firebaseio.com/resume.json', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type: type,
-          content: text
+    async updateResume (type, content) {
+      try {
+        const response = await fetch('https://my-resume-service-default-rtdb.firebaseio.com/resume.json', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            type: type,
+            content: content
+          })
         })
-      })
-      const firebaseData = await response.json()
-      console.log('updateResume in firebase', firebaseData)
-      await this.loadResume()
+        const firebaseData = await response.json()
+        console.log('updateResume in firebase', firebaseData)
+        await this.loadResume()
+      } catch (e) {
+        this.alert = {
+          type: 'danger',
+          title: 'Ошибка!',
+          text: e.message
+        }
+      }
     },
 
     async loadResume () {
       try {
+        this.commentsLoading = true
         const response = await axios.get('https://my-resume-service-default-rtdb.firebaseio.com/resume.json')
         if (!response.data) {
           throw new Error('Резюме отсутствует')
@@ -87,14 +113,20 @@ export default {
             ...response.data[key]
           }
         })
+        this.commentsLoading = false
+        this.alert = {
+          type: 'primary',
+          title: 'Успешно!',
+          text: 'Ваше резюме готово!'
+        }
+        this.commentsLoading = false
       } catch (e) {
-        // this.alert = {
-        //   type: 'danger',
-        //   title: 'Ошибка!',
-        //   text: e.message
-        // }
-        // this.loading = false
-        console.log(e.message)
+        this.alert = {
+          type: 'danger',
+          title: 'Ошибка!',
+          text: e.message
+        }
+        this.commentsLoading = false
       }
     }
 
@@ -104,7 +136,8 @@ export default {
     'app-comments': AppComments,
     'app-loader': AppLoader,
     'app-control': AppControl,
-    'app-resume': AppResume
+    'app-resume': AppResume,
+    'app-alert': AppAlert
   },
 
   mounted () {

@@ -1,5 +1,5 @@
 <template>
-  <form class="card card-w30" @submit.prevent="updateResume">
+  <form class="card card-w30" @submit.prevent="resetTextarea">
     <div class="form-control">
       <label for="type">Тип блока</label>
       <select id="type" v-model="type">
@@ -15,27 +15,25 @@
       <textarea id="value" rows="3" v-model="content"></textarea>
     </div>
 
-    <button class="btn primary" :disabled="addButtonDisable">Добавить</button>
+    <button class="btn primary" :disabled="addButtonDisable" @click="resetTextarea">Добавить</button>
   </form>
 </template>
 
 <script>
 export default {
   name: 'AppControl',
-  emits: {
-    updateResume: (data) => {
-      if (typeof data === 'object') {
-        return true
-      } else {
-        console.warn('Invalid submit event payload!')
-        return false
-      }
-    }
-  },
+  emits: ['updateResume'],
+  props: ['reset'],
   data () {
     return {
       type: 'title',
       content: ''
+    }
+  },
+  methods: {
+    resetTextarea () {
+      this.$emit('updateResume', this.type, this.content)
+      this.content = ''
     }
   },
 
@@ -43,23 +41,8 @@ export default {
     addButtonDisable () {
       return this.content.length < 4
     }
-  },
-
-  methods: {
-    updateResume () {
-      // if (this.type !== 'combo') {
-      //   data = {type: this.type, value: this.value}
-      // } else {
-      const data = {
-        type: this.type,
-        text: this.content
-      }
-      // }
-      this.$emit('updateResume', data)
-      this.type = 'title'
-      this.content = ''
-    }
   }
+
 }
 </script>
 

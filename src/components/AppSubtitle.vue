@@ -1,9 +1,7 @@
 <template>
-<!--  <div v-for="item in resume" :key = item.id>-->
-<!--    <h1 v-if="item.type === 'subtitle'">{{ item.content}}</h1>-->
-<!--  </div>-->
-  <div >
+  <div>
     <h1>{{resume}}</h1>
+    <hr/>
   </div>
 </template>
 
