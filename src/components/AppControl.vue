@@ -34,6 +34,7 @@ export default {
     resetTextarea () {
       this.$emit('updateResume', this.type, this.content)
       this.content = ''
+      this.type = 'title'
     }
   },
 

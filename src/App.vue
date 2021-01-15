@@ -51,17 +51,15 @@ export default {
   },
 
   methods: {
-    loadComments () {
+    async loadComments () {
       try {
         this.commentsLoading = true
-        setTimeout(async () => {
-          const response = await axios.get('https://jsonplaceholder.typicode.com/comments?_limit=42')
-          if (!response.data) {
-            throw new Error('Комментарии отсутствуют')
-          }
-          this.comments = response.data
-          this.commentsLoading = false
-        }, 1500)
+        const response = await axios.get(process.env.VUE_APP_ENV_COMMENTS)
+        if (!response.data) {
+          throw new Error('Комментарии отсутствуют')
+        }
+        this.comments = response.data
+        this.commentsLoading = false
         this.alert = {
           type: 'primary',
           title: 'Успешно!',
@@ -78,7 +76,7 @@ export default {
 
     async updateResume (type, content) {
       try {
-        const response = await fetch('https://my-resume-service-default-rtdb.firebaseio.com/resume.json', {
+        await fetch(process.env.VUE_APP_ENV_DB_ADDRESS + '/resume.json', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -88,9 +86,7 @@ export default {
             content: content
           })
         })
-        const firebaseData = await response.json()
-        console.log('updateResume in firebase', firebaseData)
-        await this.loadResume()
+        this.resume.push({ type: type, content: content })
       } catch (e) {
         this.alert = {
           type: 'danger',
@@ -103,7 +99,7 @@ export default {
     async loadResume () {
       try {
         this.commentsLoading = true
-        const response = await axios.get('https://my-resume-service-default-rtdb.firebaseio.com/resume.json')
+        const response = await axios.get(process.env.VUE_APP_ENV_DB_ADDRESS + '/resume.json')
         if (!response.data) {
           throw new Error('Резюме отсутствует')
         }
